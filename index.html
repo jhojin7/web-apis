@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div>
+    </div>
+    <button onclick="lol(new Date().getTime())">btnbtn</button>
+    <div id="data"></div>
+
+    <!-- https://developer.mozilla.org/en-US/docs/Web/API/Notification#events -->
+     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission().then((permission) => {
+                    if (permission === "granted") {
+                        console.log("Notification permission granted.");
+                    } else {
+                        console.log("Notification permission denied.");
+                    }
+                });
+            } else {
+                console.log("Notification permission already granted.");
+            }
+        });
+
+        function lol(s){
+            if (Notification.permission !=="granted"){
+                alert(`permission not granted! ${Notification.permission}`)
+                return
+            }
+            const noti = new Notification(
+                s, {
+                body:s,
+            })
+            console.log(noti)
+            console.log(s)
+        }
+     </script>
+</body>
+</html>
