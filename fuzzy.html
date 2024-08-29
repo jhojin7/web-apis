@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="text" id="query">
+    <p id="ppp"></p>
+    <ul id="results"></ul>
+    <script>
+        const createListItem = r => {
+            const listItem = document.createElement('li');
+            listItem.innerText = JSON.stringify(r);
+            return listItem;
+        };
+
+        const renderResults = results => {
+            // results.sort((e)=>-e.score)
+            document.getElementById("results").replaceChildren(...results.map(createListItem));
+        };
+
+        const initializeFuse = data => {
+            const fuse = new Fuse(data, { 
+                keys: ["todo"],
+                includeScore:true,
+                shouldSort:true,
+                threshold:0.3
+
+            });
+            document.getElementById('query').addEventListener('input', () => {
+                const searchQuery = document.getElementById('query').value;
+                renderResults(fuse.search(searchQuery));
+            });
+        };
+
+        const fetchData = () => fetch('https://dummyjson.com/todos/random/5')
+            .then(res => res.json())
+            .then(data => {
+                initializeFuse(data);
+                renderResults(data)
+            });
+
+        fetchData();
+
+    </script>
+</body>
+</html>
