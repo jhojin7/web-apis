@@ -104,7 +104,7 @@
                 for (var pair of formData.entries()) {
                     console.log(pair[0]+ ': ' + pair[1]); 
                 }
-                const API_URL='https://api.revolushot.com/models'
+                const API_URL='https://api.revolushot.com/models/upload'
                 try {
                     const response = await fetch(API_URL, {
                         method: 'POST',
