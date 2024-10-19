@@ -3,41 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLB File Uploader and Viewer</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 10px 0;
+        }
+        model-viewer {
+            width: 100%;
+            height: 400px;
+            background-color: #f0f0f0;
+        }
+        #uploadBtn {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div>
-    </div>
-    <button onclick="lol(new Date().getTime())">btnbtn</button>
-    <div id="data"></div>
+    <h1>GLB File Uploader and Viewer</h1>
+    <form id="uploadForm">
+        <input type="file" id="glbFile" accept=".glb" required>
+        <br>
+        <input type="text" id="fileName" placeholder="Enter file name" required>
+        <br>
+        <button type="button" id="previewBtn">Preview</button>
+        <button type="submit" id="uploadBtn">Upload and Preview</button>
+    </form>
+    <div id="imgPreview"></div>
+    <model-viewer id="modelViewer" style="width: 800px; height: 800px;"></model-viewer>
 
-    <!-- https://developer.mozilla.org/en-US/docs/Web/API/Notification#events -->
-     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (Notification.permission !== "granted") {
-                Notification.requestPermission().then((permission) => {
-                    if (permission === "granted") {
-                        console.log("Notification permission granted.");
-                    } else {
-                        console.log("Notification permission denied.");
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const glbFileInput = document.getElementById('glbFile');
+        const fileNameInput = document.getElementById('fileName');
+        const modelViewer = document.getElementById('modelViewer');
+        const previewBtn = document.getElementById('previewBtn');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const imgPreview = document.getElementById('imgPreview');
+
+        let screenshot = null;
+        let screenshotBlob = null;
+
+        previewBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const file = glbFileInput.files[0];
+            const fileName = fileNameInput.value;
+
+            if (file && fileName) {
+                const objectURL = URL.createObjectURL(file);
+                modelViewer.src = objectURL;
+                modelViewer.alt = fileName;
+                
+                // Wait for the model to load before taking the screenshot
+                modelViewer.addEventListener('load', async () => {
+                    screenshot = await modelViewer.toDataURL();
+                    //=============================
+                    // Convert Base64 data URL to Blob for file upload
+                    const byteString = atob(screenshot.split(',')[1]);
+                    const arrayBuffer = new ArrayBuffer(byteString.length);
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    for (let i = 0; i < byteString.length; i++) {
+                        uint8Array[i] = byteString.charCodeAt(i);
                     }
-                });
-            } else {
-                console.log("Notification permission already granted.");
+                    // Create a Blob from the Uint8Array
+                    screenshotBlob = new Blob([arrayBuffer], { type: 'image/png' });
+                    //=============================
+                    uploadBtn.style.display = 'block';
+                    imgPreview.innerHTML = `<img src=${screenshot} style="width:512px; height:512px"></img>`
+                    imgPreview.style.width=300
+
+                }, { once: true });
             }
         });
 
-        function lol(s){
-            if (Notification.permission !=="granted"){
-                alert(`permission not granted! ${Notification.permission}`)
-                return
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const file = glbFileInput.files[0];
+            const fileName = fileNameInput.value;
+            // const API_URL='http://localhost:8000/models/upload'
+            const API_URL='http://api.revolushot.com/models/upload'
+
+            if (file && fileName && screenshotBlob) {
+                console.log(file , fileName , screenshot)
+
+                const formData = new FormData();
+                // const formData = new FormData(e.target);
+                console.log(">>>>>>>>>>>", formData);
+                formData.append('glb_file', file);
+                formData.append('file_name', fileName);
+                formData.append('thumbnail_file', screenshotBlob , "thumbnail.png");
+
+                // Log the FormData
+                for (var pair of formData.entries()) {
+                    console.log(pair[0]+ ': ' + pair[1]); 
+                }
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                        }
+
+                    });
+                    console.log("response"+JSON.stringify(response))
+                    console.log("Response status:", response.status);
+                    console.log("Response headers:", response.headers);
+                    const responseText = await response.text();
+                    console.log("Response body:", responseText);
+
+                    if (response.ok) {
+                        alert('Upload successful!');
+                    } else {
+                        alert('Upload failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
             }
-            const noti = new Notification(
-                s, {
-                body:s,
-            })
-            console.log(noti)
-            console.log(s)
-        }
-     </script>
+        });
+    </script>
 </body>
 </html>
