@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,28 +13,38 @@
             margin: 0 auto;
             padding: 20px;
         }
+
         form {
             margin-bottom: 20px;
         }
-        input, button {
+
+        input,
+        button {
             margin: 10px 0;
         }
+
         model-viewer {
             width: 100%;
             height: 400px;
             background-color: #f0f0f0;
         }
+
         #uploadBtn {
             display: none;
         }
     </style>
 </head>
+
 <body>
     <h1>GLB File Uploader and Viewer</h1>
     <form id="uploadForm">
         <input type="file" id="glbFile" accept=".glb" required>
         <br>
-        <input type="text" id="fileName" placeholder="Enter file name" required>
+        <!-- <p>Enter file type:</p> -->
+        <!-- <input type="text" id="fileName" placeholder="noname.glb" required> -->
+        <br>
+        <p>Enter file type:[PROPERTY, CAMERA, LIGHT, BACKGROUND]</p> <!--TODO: form label-->
+        <input type="text" id="fileType" placeholder="PROPERTY" required>
         <br>
         <button type="button" id="previewBtn">Preview</button>
         <button type="submit" id="uploadBtn">Upload and Preview</button>
@@ -44,7 +55,8 @@
     <script>
         const uploadForm = document.getElementById('uploadForm');
         const glbFileInput = document.getElementById('glbFile');
-        const fileNameInput = document.getElementById('fileName');
+        // const fileNameInput = document.getElementById('fileName');
+        const fileTypeInput = document.getElementById('fileType');
         const modelViewer = document.getElementById('modelViewer');
         const previewBtn = document.getElementById('previewBtn');
         const uploadBtn = document.getElementById('uploadBtn');
@@ -53,16 +65,16 @@
         let screenshot = null;
         let screenshotBlob = null;
 
-        previewBtn.addEventListener('click', function(e) {
+        previewBtn.addEventListener('click', function (e) {
             e.preventDefault();
             const file = glbFileInput.files[0];
-            const fileName = fileNameInput.value;
+            // const fileName = fileNameInput.value;
 
-            if (file && fileName) {
+            if (file && true) {
                 const objectURL = URL.createObjectURL(file);
                 modelViewer.src = objectURL;
-                modelViewer.alt = fileName;
-                
+                // modelViewer.alt = fileName;
+
                 // Wait for the model to load before taking the screenshot
                 modelViewer.addEventListener('load', async () => {
                     screenshot = await modelViewer.toDataURL();
@@ -79,32 +91,33 @@
                     //=============================
                     uploadBtn.style.display = 'block';
                     imgPreview.innerHTML = `<img src=${screenshot} style="width:512px; height:512px"></img>`
-                    imgPreview.style.width=300
+                    imgPreview.style.width = 300
 
                 }, { once: true });
             }
         });
 
-        uploadForm.addEventListener('submit', async function(e) {
+        uploadForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const file = glbFileInput.files[0];
-            const fileName = fileNameInput.value;
-            // const API_URL='http://localhost:8000/models/upload'
-            const API_URL='http://api.revolushot.com/models/upload'
+            // const fileName = fileNameInput.value;
+            const fileType = fileTypeInput.value;
+            const API_URL = 'http://api.revolushot.com/models/upload'
 
-            if (file && fileName && screenshotBlob) {
-                console.log(file , fileName , screenshot)
+            if (file && true && screenshotBlob) {
+                // console.log(file , fileName , screenshot)
 
                 const formData = new FormData();
                 // const formData = new FormData(e.target);
                 console.log(">>>>>>>>>>>", formData);
+                // formData.append('file_name', fileName);
+                formData.append('file_type', fileType);
                 formData.append('glb_file', file);
-                formData.append('file_name', fileName);
-                formData.append('thumbnail_file', screenshotBlob , "thumbnail.png");
+                formData.append('thumbnail_file', screenshotBlob, "thumbnail.png");
 
                 // Log the FormData
                 for (var pair of formData.entries()) {
-                    console.log(pair[0]+ ': ' + pair[1]); 
+                    console.log(pair[0] + ': ' + pair[1]);
                 }
                 try {
                     const response = await fetch(API_URL, {
@@ -115,7 +128,7 @@
                         }
 
                     });
-                    console.log("response"+JSON.stringify(response))
+                    console.log("response" + JSON.stringify(response))
                     console.log("Response status:", response.status);
                     console.log("Response headers:", response.headers);
                     const responseText = await response.text();
@@ -134,4 +147,5 @@
         });
     </script>
 </body>
+
 </html>
