@@ -38,13 +38,22 @@
 <body>
     <h1>GLB File Uploader and Viewer</h1>
     <form id="uploadForm">
+        <label for="glbFile">glb file</label>
         <input type="file" id="glbFile" accept=".glb" required>
         <br>
-        <!-- <p>Enter file type:</p> -->
-        <!-- <input type="text" id="fileName" placeholder="noname.glb" required> -->
+        <label for="name_ko">name_ko</label>
+        <input type="text" id="name_ko" required>
         <br>
-        <p>Enter file type:[PROPERTY, CAMERA, LIGHT, BACKGROUND]</p> <!--TODO: form label-->
-        <input type="text" id="fileType" placeholder="PROPERTY" required>
+        <label for="name_en">name_en</label>
+        <input type="text" id="name_en" required>
+        <br>
+        <label for="fileType">Choose an option:</label>
+        <select id="fileType" name="fileType">
+            <option value="PROPERTY">PROPERTY</option>
+            <option value="CAMERA">CAMERA</option>
+            <option value="LIGHT">LIGHT</option>
+            <option value="BACKGROUND">BACKGROUND</option>
+        </select>
         <br>
         <button type="button" id="previewBtn">Preview</button>
         <button type="submit" id="uploadBtn">Upload and Preview</button>
@@ -97,12 +106,18 @@
             }
         });
 
+        // Determine the base URL dynamically based on the hostname
+        const isLocalhost = window.location.hostname === 'localhost';
+        const API_BASE_URL = isLocalhost ? 'http://localhost:8000' : 'https://api.revolushot.com';
+        const API_URL = `${API_BASE_URL}/models/upload`;
+        console.log("api url", API_URL)
+
         uploadForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const file = glbFileInput.files[0];
             // const fileName = fileNameInput.value;
             const fileType = fileTypeInput.value;
-            const API_URL = 'https://api.revolushot.com/models/upload'
+
 
             if (file && true && screenshotBlob) {
                 // console.log(file , fileName , screenshot)
@@ -110,7 +125,8 @@
                 const formData = new FormData();
                 // const formData = new FormData(e.target);
                 console.log(">>>>>>>>>>>", formData);
-                // formData.append('file_name', fileName);
+                formData.append('name_ko', document.querySelector("#name_ko").value);
+                formData.append('name_en', document.querySelector("#name_en").value);
                 formData.append('file_type', fileType);
                 formData.append('glb_file', file);
                 formData.append('thumbnail_file', screenshotBlob, "thumbnail.png");
